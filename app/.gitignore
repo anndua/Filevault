@@ -1,0 +1,47 @@
+# Virtual environment
+venv/
+
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Alembic cache
+alembic/__pycache__/
+
+# Test cache
+.pytest_cache/
+
+# Coverage reports
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local databases (if ever used)
+*.db
+
+# Uploaded files (if stored locally during development)
+uploads/
+
+# Temporary files
+tmp/
+temp/
