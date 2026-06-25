@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 
 from models import User
 from schemas import UserCreate
-from security import hash_password
+from security import hash_password,verify_password
 
 
 def get_user_by_email(email: str, session: Session):
@@ -39,3 +39,18 @@ def create_user(
     session.refresh(user)
 
     return user
+
+def authenticate_user(
+        email:str,
+        password:str,
+        session:Session
+):
+    user = get_user_by_email(email,session)
+    if user is None:
+        return None
+    if not verify_password(password,user.hashed_password):
+        return None
+    return user
+
+
+    
