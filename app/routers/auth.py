@@ -5,8 +5,10 @@ from db import get_session
 from schemas import UserCreate, UserResponse,UserLogin
 from services import create_user
 from services import authenticate_user
+from dependencies import get_current_user
 from sqlmodel import Session
 from security import create_access_token
+from models import User
 
 router = APIRouter()
 
@@ -43,5 +45,8 @@ def login(
         "access_token":token,
         "token_type":"bearer"
     }
+@router.get("/me",response_model=UserResponse)
+def get_me(current_user:User= Depends(get_current_user)):
+    return current_user
 
 
