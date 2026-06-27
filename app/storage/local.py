@@ -3,6 +3,11 @@ from typing import BinaryIO
 import shutil
 
 from storage.base import storageBackend
+from storage.exceptions import (
+    ObjectNotFound,
+    StoragePermissionDenied,
+    StorageError,
+)
 
 
 class LocalStrorage(storageBackend):
@@ -11,29 +16,66 @@ class LocalStrorage(storageBackend):
 
     def put(self,key:str,data:BinaryIO)->None:
         Path=self.root/key
-        Path.parent.mkdir(
+        try:
+
+
+            Path.parent.mkdir(
             parents=True,
-            exist_ok=True
-        )
-        with open(Path,"wb") as file:
-            shutil.copyfileobj(data,file)
+            exist_ok=True)
+        
+            with open(Path,"wb") as file:
+
+                shutil.copyfileobj(data,file)
             #copyfilobj does readsmall chunk wrote small chunk read next chunk until EOF
-        pass
+        except PermissionError as e:
+            raise StoragePermissionDenied(
+                f"permission denied while storing '{key}'"
+            )from e
+        except OSError as e:
+            raise StorageError(
+                f"faled to store '{key}'"
+            )from e
+           
+    
     def get(self,key:str)->BinaryIO:
         path=self.root/key
-        return open(pathath,"rb")
+        try:
+            return open(path,"rb")
+        except FileNotFoundError as e:
+            raise ObjectNotFound(f"öbject '{key}' not found")from e
+        except OSError as e:
+            raise StorageError(
+                f"failed to read object '{key}'"
+            )from e
+        
+        
+
+        
     
 
 
         
     def delete(self,key:str)->None:
         path=self.root/key
-        path.unlink()
+        try:
+
+        
+            path.unlink()
+        except FileNotFoundError as e:
+            raise ObjectNotFound(
+                f"object '{key}' not found"
+            )from e
+        except PermissionError as e:
+            raise StoragePermissionDenied(
+                f"permission denied while deleting '{key}'"
+            )from e
+        
         
 
         
     def exist(self,key:str)->bool:
-        pass
+        path=self.root/key
+        return path.exists()
 
 
 # Goal
