@@ -73,7 +73,7 @@ class LocalStrorage(storageBackend):
         
 
         
-    def exist(self,key:str)->bool:
+    def exists(self,key:str)->bool:
         path=self.root/key
         return path.exists()
 

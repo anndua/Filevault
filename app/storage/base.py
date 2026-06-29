@@ -17,7 +17,7 @@ class storageBackend(ABC):
         pass
         #we using Binaryio is a type hint tells read bytes from something
     @abstractmethod
-    def get(self,keY:str)->BinaryIO:
+    def get(self,key:str)->BinaryIO:
         pass
     #binaryio nothing is loaded at once read small chunks sen read next chuck send 
     @abstractmethod
