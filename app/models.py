@@ -12,7 +12,11 @@ class User(SQLModel,table=True):
 class File(SQLModel,table=True):
     id:int|None=Field(default=None,primary_key=True)
     filename:str
+    object_key: str=Field(unique=True,index=True)
     size:int
+    content_type:str
+    status:str=Field(default="READY")
     created_at:datetime=Field(default_factory=datetime.utcnow)
     owner_id:int=Field(foreign_key="user.id")
-    owner:Optional["User"]=Relationship(back_populates="files") 
+    owner:Optional["User"]=Relationship(back_populates="files") #we using optional coz initiall files.owner might not be fetched
+    
