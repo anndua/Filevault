@@ -15,11 +15,13 @@
 from typing import BinaryIO
 from storage.base import storageBackend
 from utils.object_key import ObjectkeyGenerator
+from repositories.file_repository import FileRepsitory
 
 
 class UploadServices:
-    def __init__(self,storage:storageBackend):
+    def __init__(self,storage:storageBackend,file_repository:FileRepsitory):
         self.storage = storage
+        self.file_repository=file_repository
     def upload(self,user_id:int,filename:str,data:BinaryIO):
         key=ObjectkeyGenerator.generate(user_id=user_id,filename=filename)
 

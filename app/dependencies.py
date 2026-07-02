@@ -10,6 +10,8 @@ from pathlib import Path
 from storage.local import LocalStrorage
 from services.upload import UploadServices
 from storage.base import storageBackend
+from repositories.file_repository import FileRepsitory
+from repositories.postgres_file_repository import PostgresFileRepository
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -34,9 +36,6 @@ def get_storage()->LocalStrorage:
     return LocalStrorage(
         root=Path("storage_data/objects")
     )
-def get_upload_services(
-        storage:storageBackend=Depends(get_storage),)->UploadServices:
-    return UploadServices(storage)
 
     
 
