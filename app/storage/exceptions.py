@@ -28,3 +28,21 @@ class StorageUnavailable(StorageError):
     pass
 class StoragePermissionDenied(StorageError):
     pass
+class FileError(Exception):
+    pass
+class FileNotFound(FileError):
+    pass
+class FileAccessDenied(FileError):
+    pass
+class AuthenthicationError(Exception):
+    pass
+class InvalidToken(AuthenthicationError):
+    pass
+class UploadError(Exception):
+    pass
+class UploadedSessionExpired(UploadError):
+    pass
+class ChuckAlreadyUploaded(UploadError):
+    pass
+class UploasAlreadyCompleted(UploadError):
+    pass

@@ -11,7 +11,7 @@ class FileRepsitory(ABC):
     def get(self,file_id:int):
         pass
     @abstractmethod
-    def delete(self,file_id:int):
+    def delete(self,file_id:File):
         pass
     @abstractmethod
     def list_by_owner(self,owner_id:int):
