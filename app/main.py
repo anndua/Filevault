@@ -20,4 +20,6 @@ app.include_router(
 app.include_router(file_router)
 
 
+from routers.uploads import router as uploads_router
 
+app.include_router(uploads_router)

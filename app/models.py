@@ -1,6 +1,9 @@
 from datetime import datetime
 from typing import Optional
 from sqlmodel import SQLModel,Field,Relationship
+from uuid import UUID,uuid4
+from datetime import datetime
+from typing import Optional
 
 class User(SQLModel,table=True):
     id:int |None =Field(default=None,primary_key=True)
@@ -19,4 +22,20 @@ class File(SQLModel,table=True):
     created_at:datetime=Field(default_factory=datetime.utcnow)
     owner_id:int=Field(foreign_key="user.id")
     owner:Optional["User"]=Relationship(back_populates="files") #we using optional coz initiall files.owner might not be fetched
-    
+
+
+class UploadSession(SQLModel,table=True):
+    id:Optional[int]=Field(default=None,primary_key=True)
+    upload_id:UUID =Field(default_factory=uuid4,index=True)
+
+    filename:str
+
+    object_key:str
+    owner_id:int =Field(foreign_key="user.id")
+    status:str=Field(default="INITIATED")
+    total_chunks:int
+    uploaded_chunks:int =Field(default=0)
+    created_at:datetime=Field(default_factory=datetime.utcnow)
+      
+
+
