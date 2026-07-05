@@ -23,5 +23,8 @@ class PostgresUploadSessionRepository(UploadSessionRepository):
         self.session.commit()
         self.session.refresh(upload_session)
         return upload_session
-       
+    def delete(self,upload_session:UploadSession):
+        self.session.delete(upload_session)
+        self.session.commit()
+           
     

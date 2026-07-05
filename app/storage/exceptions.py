@@ -46,3 +46,5 @@ class ChuckAlreadyUploaded(UploadError):
     pass
 class UploasAlreadyCompleted(UploadError):
     pass
+class UploadSessionNotFound(Exception):
+    pass

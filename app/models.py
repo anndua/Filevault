@@ -38,12 +38,13 @@ class UploadSession(SQLModel,table=True):
     created_at:datetime=Field(default_factory=datetime.utcnow)
 
 
-class chunk(SQLModel,table=True):
+class Chunk(SQLModel,table=True):
     id:int |None =Field(default=None,primary_key=True)
     UploadSession_id:int =Field(foreign_key="uploadsession.id")
 
-    chunck_number:int
+    chunk_number:int
     size:int
+    object_key: str
 
     checksum: str|None=None
     status:str=Field(default="UPLOADED")

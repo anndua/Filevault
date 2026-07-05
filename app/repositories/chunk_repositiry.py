@@ -1,10 +1,10 @@
 from abc import ABC,abstractmethod
-from models import chunk
+from models import Chunk
 
 class ChunkRepository(ABC):
     @abstractmethod
 
-    def create(self,chunk:chunk):
+    def create(self,chunk:Chunk):
         pass
     @abstractmethod
     def get_chunk(self,upload_session_id:int,
@@ -15,7 +15,7 @@ class ChunkRepository(ABC):
         self,upload_session_id:int):
         pass
     @abstractmethod
-    def delete(self,chunk:chunk):
+    def delete(self,chunk:Chunk):
         pass
 
     
