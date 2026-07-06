@@ -48,3 +48,5 @@ class UploasAlreadyCompleted(UploadError):
     pass
 class UploadSessionNotFound(Exception):
     pass
+class UploadIncomplete(Exception):
+    pass

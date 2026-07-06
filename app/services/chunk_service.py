@@ -22,7 +22,10 @@ class ChunkService:
         self.chunk_repository=chunk_repository
     def upload_chunk(self,upload_id:UUID,
                      chunk_number:int,
-                     data:BinaryIO):
+                     data:BinaryIO)->Chunk:
+        
+        
+        
         upload_session=self.upload_session_repository.get_by_upload_id(upload_id)
         if upload_session is None:
             raise UploadSessionNotFound()
