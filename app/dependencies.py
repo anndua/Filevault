@@ -18,7 +18,7 @@ from repositories.postgres_chunk_repository import PostgressChunkRepository
 from services.chunk_service import ChunkService
 from repositories.chunk_repositiry import ChunkRepository
 from repositories.upload_session_repository import UploadSessionRepository
-
+from services.complete_upload import CompleteUploadService
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 def get_current_user(token:str=Depends(oauth2_scheme),session:Session=Depends(get_session)):
@@ -82,5 +82,16 @@ def get_chunk_service(
         upload_session_repository=upload_session_repository,
         chunk_repository=chunk_repository
     )
+
+def get_complete_upload_service(storage:storageBackend=Depends(get_storage),
+                                upload_session_repository:UploadSessionRepository=Depends(get_upload_session_repository),
+                                chunk_repository:ChunkRepository=Depends(get_chunk_repository),
+                                file_repository:FileRepsitory=Depends(get_file_repository)):
+    return CompleteUploadService(
+        storage=storage,
+        upload_session_repository=upload_session_repository,
+        chunk_repository=chunk_repository,
+        file_repository=file_repository
+    ) 
 
 

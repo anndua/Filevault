@@ -1,6 +1,7 @@
 
 from fastapi import APIRouter, Depends,UploadFile,File
 from uuid import UUID
+from dependencies import get_complete_upload_service
 
 from dependencies import (
     get_current_user,
@@ -11,6 +12,10 @@ from models import User
 from schemas import UploadInitiateRequest
 from services.chunk_service import ChunkService
 from services.upload_session import UploadSessionService
+from services.upload import UploadServices
+from services.chunk_service import ChunkService
+from services.complete_upload import CompleteUploadService
+
 
 router = APIRouter(
     prefix="/uploads",
@@ -52,5 +57,14 @@ def upload_chunk(
         "message":"chunk uploded succesfully",
         "chunk_number":saved_chunk.chunk_number
     }
+@router.post("/{upload_id}/complete")
+def complete_upload(upload_id:UUID,
+                    complete_upload_service:CompleteUploadService=Depends(get_complete_upload_service)):
+    complete_upload_service.complete_upload(upload_id)
+
+    return {
+        "message":"upload completed successfully"
+    }
+    
     
   

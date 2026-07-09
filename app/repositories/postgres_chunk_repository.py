@@ -20,9 +20,10 @@ class PostgressChunkRepository(ChunkRepository):
                                       Chunk.chunk_number==chunk_number)
         return self.session.exec(statement).first()
     def list_chunk(self,upload_session_id:int):
+        
         statement=select(Chunk).where(
             Chunk.UploadSession_id==upload_session_id)
-        return self.session.exec(statement)
+        return self.session.exec(statement).all()
     def delete(self,chunk:Chunk):
         self.session.delete(chunk)
         self.session.commit()
