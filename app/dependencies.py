@@ -1,12 +1,12 @@
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session
-
+from config import endpoint,access_key,secret_key,bucket,secure
 from db import get_session
 from security import decode_access_token
 from  service import get_user_by_email
 from pathlib import Path
-
+from storage.minio_storage import MinioStorage
 from storage.local import LocalStrorage
 from services.upload import UploadServices
 from storage.base import storageBackend
@@ -37,10 +37,15 @@ def get_current_user(token:str=Depends(oauth2_scheme),session:Session=Depends(ge
         )
     return user
 
-def get_storage()->LocalStrorage:
+def get_storage()->storageBackend:
+    print(">>> get_storage() called")
 
-    return LocalStrorage(
-        root=Path("storage_data/objects")
+    return MinioStorage(
+        endpoint=endpoint,
+        access_key=access_key,
+        secret_key=secret_key,
+        bucket=bucket,
+        secure=secure
     )
 def get_file_repository(
         session:Session=Depends(get_session)

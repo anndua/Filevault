@@ -10,3 +10,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(
     os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
 )
 
+endpoint = os.getenv("MINIO_ENDPOINT")
+access_key = os.getenv("MINIO_ACCESS_KEY")
+secret_key = os.getenv("MINIO_SECRET_KEY")
+bucket = os.getenv("MINIO_BUCKET")
+secure = os.getenv("MINIO_SECURE", "false").lower() == "true"
