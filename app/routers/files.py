@@ -1,8 +1,9 @@
 from fastapi import APIRouter,Depends,UploadFile,File,HTTPException
 
-from dependencies import(get_current_user,get_upload_service)
+from dependencies import(get_current_user,get_upload_service,get_download_service)
 from models import User
 from services.upload import UploadServices
+from services.download_service import DownloadService
 router=APIRouter(
     prefix="/files",
     tags=["Files"]
@@ -65,6 +66,17 @@ def delete_file(
     return {
         "message": "File deleted"
     }   
+@router.get("/{file_id}/download")
+def download_file(file_id:int,current_user:User=Depends(get_current_user),
+                  download_service:DownloadService=Depends(get_download_service)):
+    url=download_service.get_download_url(
+        file_id=file_id,
+        user=current_user
+    )
+    return{
+        "url":url,
+        "expires_in":30
+    }
 
 
     

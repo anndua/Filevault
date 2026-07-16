@@ -4,6 +4,7 @@ from minio import Minio
 from minio.error import S3Error
 
 from storage.base import storageBackend
+from datetime import timedelta
 from storage.exceptions import ObjectNotFound,StoragePermissionDenied,StorageError
 
 class MinioStorage(storageBackend):
@@ -60,6 +61,19 @@ class MinioStorage(storageBackend):
                 f"Falied to delete '{key}'"
             )from e
                 
-         
+    def generate_download_url(self, key: str, expires_in: timedelta)->str:
+        try:
+             return self.client.presigned_get_object(
+            bucket_name=self.bucket,
+            object_name=key,
+            expires=expires_in
+        )
+        except Exception as e:
+            raise StorageError(f"Failed to generate download url for '{key}'")from e
+        
+        
+
+           
+    
         
        
