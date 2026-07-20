@@ -24,10 +24,12 @@ class DownloadService:
                 raise FileNotFoundError("file not found")
             if file.owner_id !=user.id:
                 raise PermissionError("you do not have access to this file")
-            return self.storage.generate_download_url(
+            url= self.storage.generate_download_url(
                 key=file.object_key,
                 expires_in=timedelta(minutes=5)
             )
+            print("p-url:",url)
+            return url
             
         
 

@@ -47,6 +47,7 @@ class CompleteUploadService:
             content_type="application/octet-stream",
             owner_id=upload_session.owner_id,)
         file=self.file_repository.create(file)
+        print("Created file id:", file.id)
         for chunk in chunks:
             self.storage.delete(chunk.object_key)
         for chunk in chunks:

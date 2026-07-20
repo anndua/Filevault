@@ -11,7 +11,7 @@ class ObjectkeyGenerator:
 
         object_id = uuid.uuid4()
 
-        return (
+        key= (
             f"users/"
             f"{user_id}/"
             f"{now.year}/"
@@ -19,3 +19,5 @@ class ObjectkeyGenerator:
             f"{now.day:02d}/"
             f"{object_id}{extension}"
         )
+        print(key)
+        return key
