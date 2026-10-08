@@ -1,7 +1,7 @@
 
-from fastapi import APIRouter, Depends,UploadFile,File
+from fastapi import APIRouter, Depends,UploadFile,File,HTTPException
 from uuid import UUID
-from dependencies import get_complete_upload_service
+from dependencies import get_complete_upload_service, get_rate_limiter
 
 from dependencies import (
     get_current_user,
@@ -12,9 +12,10 @@ from models import User
 from schemas import UploadInitiateRequest
 from services.chunk_service import ChunkService
 from services.upload_session import UploadSessionService
-from services.upload import UploadServices
-from services.chunk_service import ChunkService
 from services.complete_upload import CompleteUploadService
+from storage.exceptions import StorageError, UploadIncomplete, UploadSessionNotFound
+from services.rate_limiter import RateLimitExceeded, RateLimiter
+from config import upload_rate_limit, chunk_rate_limit
 
 
 router = APIRouter(
@@ -26,7 +27,15 @@ router = APIRouter(
 def initiate_upload(
     request:UploadInitiateRequest,
     current_user:User=Depends(get_current_user),
-    upload_session_service:UploadSessionService=Depends(get_upload_session_service)):
+    upload_session_service:UploadSessionService=Depends(get_upload_session_service),
+    limiter: RateLimiter = Depends(get_rate_limiter)):
+    try:
+        limiter.consume("upload-initiate", str(current_user.id), upload_rate_limit, 60)
+    except RateLimitExceeded as exc:
+        raise HTTPException(status_code=429, detail="Upload initiation rate limit exceeded",
+                            headers={"Retry-After": str(exc.retry_after)}) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     
     session=upload_session_service.initiate_upload(
         user_id=current_user.id,
@@ -45,13 +54,29 @@ def upload_chunk(
     chunk_number:int,
     file:UploadFile=File(...),
     current_user:User=Depends(get_current_user),
-    chunk_service:ChunkService=Depends(get_chunk_service)
+    chunk_service:ChunkService=Depends(get_chunk_service),
+    limiter: RateLimiter = Depends(get_rate_limiter),
 ):
-    saved_chunk=chunk_service.upload_chunk(
-        upload_id=upload_id,
-        chunk_number=chunk_number,
-        data=file.file
-    )
+    try:
+        limiter.consume("upload-chunk", str(current_user.id), chunk_rate_limit, 60)
+    except RateLimitExceeded as exc:
+        raise HTTPException(status_code=429, detail="Chunk upload rate limit exceeded",
+                            headers={"Retry-After": str(exc.retry_after)}) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    try:
+        saved_chunk=chunk_service.upload_chunk(
+            upload_id=upload_id,
+            chunk_number=chunk_number,
+            user_id=current_user.id,
+            data=file.file
+        )
+    except UploadSessionNotFound as exc:
+        raise HTTPException(status_code=404, detail="Upload session not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except StorageError as exc:
+        raise HTTPException(status_code=503, detail="Object storage is unavailable") from exc
    
     return {
         "message":"chunk uploded succesfully",
@@ -59,11 +84,19 @@ def upload_chunk(
     }
 @router.post("/{upload_id}/complete")
 def complete_upload(upload_id:UUID,
+                    current_user:User=Depends(get_current_user),
                     complete_upload_service:CompleteUploadService=Depends(get_complete_upload_service)):
-    complete_upload_service.complete_upload(upload_id)
+    try:
+        complete_upload_service.complete_upload(upload_id, current_user.id)
+    except UploadSessionNotFound as exc:
+        raise HTTPException(status_code=404, detail="Upload session not found") from exc
+    except UploadIncomplete as exc:
+        raise HTTPException(status_code=400, detail="Upload is missing chunks") from exc
+    except StorageError as exc:
+        raise HTTPException(status_code=503, detail="Object storage is unavailable") from exc
 
     return {
-        "message":"upload completed successfully"
+        "message": "upload completed successfully"
     }
     
     

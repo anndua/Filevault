@@ -21,10 +21,12 @@ class CompleteUploadService:
 
         
         
-    def complete_upload(self,upload_id:UUID):
+    def complete_upload(self,upload_id:UUID,user_id:int):
         upload_session =self.upload_session_repository.get_by_upload_id(upload_id)
 
-        if upload_session is None:
+        if upload_session is None or upload_session.owner_id != user_id:
+            raise UploadSessionNotFound()
+        if upload_session.status != "INITIATED":
             raise UploadSessionNotFound()
         chunks=self.chunk_repository.list_chunk(upload_session.id)
         if len(chunks)!=upload_session.total_chunks:
@@ -47,7 +49,6 @@ class CompleteUploadService:
             content_type="application/octet-stream",
             owner_id=upload_session.owner_id,)
         file=self.file_repository.create(file)
-        print("Created file id:", file.id)
         for chunk in chunks:
             self.storage.delete(chunk.object_key)
         for chunk in chunks:
@@ -63,4 +64,3 @@ class CompleteUploadService:
 
 
             
-

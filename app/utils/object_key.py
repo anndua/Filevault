@@ -19,5 +19,4 @@ class ObjectkeyGenerator:
             f"{now.day:02d}/"
             f"{object_id}{extension}"
         )
-        print(key)
         return key

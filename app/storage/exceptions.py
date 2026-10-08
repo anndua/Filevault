@@ -50,3 +50,6 @@ class UploadSessionNotFound(Exception):
     pass
 class UploadIncomplete(Exception):
     pass
+
+class ShareNotFound(Exception):
+    pass

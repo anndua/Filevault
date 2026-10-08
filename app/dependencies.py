@@ -1,7 +1,8 @@
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
+from jose.exceptions import JWTError
 from sqlmodel import Session
-from config import endpoint,access_key,secret_key,bucket,secure
+from config import endpoint,public_endpoint,minio_region,access_key,secret_key,bucket,secure,redis_url
 from db import get_session
 from security import decode_access_token
 from  service import get_user_by_email
@@ -20,10 +21,19 @@ from repositories.chunk_repositiry import ChunkRepository
 from repositories.upload_session_repository import UploadSessionRepository
 from services.complete_upload import CompleteUploadService
 from services.download_service import DownloadService
+from repositories.postgres_share_repository import PostgresShareRepository
+from repositories.share_repository import ShareRepository
+from services.share_service import ShareService
+from services.rate_limiter import RateLimiter
+import redis
+from functools import lru_cache
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 def get_current_user(token:str=Depends(oauth2_scheme),session:Session=Depends(get_session)):
-    payload=decode_access_token(token)
+    try:
+        payload=decode_access_token(token)
+    except (ValueError, JWTError) as exc:
+        raise HTTPException(status_code=401, detail="Invalid or expired access token") from exc
     email=payload.get("sub")
     if email is None:
         raise HTTPException(
@@ -39,14 +49,14 @@ def get_current_user(token:str=Depends(oauth2_scheme),session:Session=Depends(ge
     return user
 
 def get_storage()->storageBackend:
-    print(">>> get_storage() called")
-
     return MinioStorage(
         endpoint=endpoint,
         access_key=access_key,
         secret_key=secret_key,
         bucket=bucket,
-        secure=secure
+        secure=secure,
+        public_endpoint=public_endpoint,
+        region=minio_region
     )
 def get_file_repository(
         session:Session=Depends(get_session)
@@ -108,7 +118,22 @@ def get_download_service(
         file_repository=file_repository
     )
 
-    
+def get_share_repository(session: Session = Depends(get_session)) -> ShareRepository:
+    return PostgresShareRepository(session)
 
+def get_share_service(
+    storage: storageBackend = Depends(get_storage),
+    file_repository: FileRepsitory = Depends(get_file_repository),
+    share_repository: ShareRepository = Depends(get_share_repository),
+) -> ShareService:
+    return ShareService(storage, file_repository, share_repository)
 
-
+@lru_cache(maxsize=1)
+def get_rate_limiter() -> RateLimiter:
+    client = redis.Redis.from_url(
+        redis_url,
+        socket_connect_timeout=2,
+        socket_timeout=2,
+        decode_responses=False,
+    )
+    return RateLimiter(client)

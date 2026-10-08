@@ -5,13 +5,33 @@ from minio.error import S3Error
 
 from storage.base import storageBackend
 from datetime import timedelta
+from urllib.parse import quote
 from storage.exceptions import ObjectNotFound,StoragePermissionDenied,StorageError
 
 class MinioStorage(storageBackend):
-    def __init__(self,endpoint:str,access_key:str,secret_key:str,bucket:str,secure:bool=False):
+    def __init__(
+        self,
+        endpoint:str,
+        access_key:str,
+        secret_key:str,
+        bucket:str,
+        secure:bool=False,
+        public_endpoint:str|None=None,
+        region:str="us-east-1",
+    ):
         self.client=Minio(endpoint=endpoint,access_key=access_key,
                           secret_key=secret_key,
-                          secure=secure)
+                          secure=secure,
+                          region=region)
+        self.presign_client = self.client
+        if public_endpoint and public_endpoint != endpoint:
+            self.presign_client = Minio(
+                endpoint=public_endpoint,
+                access_key=access_key,
+                secret_key=secret_key,
+                secure=secure,
+                region=region,
+            )
         
         self.bucket=bucket
         print(">>> MinioStorage initialized")
@@ -61,13 +81,26 @@ class MinioStorage(storageBackend):
                 f"Falied to delete '{key}'"
             )from e
                 
-    def generate_download_url(self, key: str, expires_in: timedelta)->str:
+    def generate_download_url(
+        self,
+        key: str,
+        expires_in: timedelta,
+        filename: str | None = None,
+    )->str:
         try:
-             return self.client.presigned_get_object(
-            bucket_name=self.bucket,
-            object_name=key,
-            expires=expires_in
-        )
+            response_headers = None
+            if filename:
+                response_headers = {
+                    "response-content-disposition": (
+                        "attachment; filename*=UTF-8''" + quote(filename, safe="")
+                    )
+                }
+            return self.presign_client.presigned_get_object(
+                bucket_name=self.bucket,
+                object_name=key,
+                expires=expires_in,
+                response_headers=response_headers,
+            )
         except Exception as e:
             raise StorageError(f"Failed to generate download url for '{key}'")from e
         

@@ -9,6 +9,7 @@
 #this is basically a specification file
 from abc import ABC,abstractmethod
 from typing import BinaryIO
+from datetime import timedelta
 #ABC mean this class is incomplete->abstract base class let us create class whoe purpose is to define contract not an implementation
 
 class storageBackend(ABC):
@@ -29,4 +30,8 @@ class storageBackend(ABC):
     key: str,
 ) -> bool:
        pass
-
+    @abstractmethod
+    def generate_download_url(
+        self,key:str,expires_in:timedelta,filename:str|None=None
+    )->str:
+        pass
